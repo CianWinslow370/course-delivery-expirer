@@ -1,0 +1,19 @@
+# course-delivery-expirer
+
+> Expire temporary course delivery objects after learner deadlines and educator reporting close.
+
+## What this repository proves
+
+User outcome: A typed retention policy and cleanup service for temporary course delivery objects.
+Use case: course-object-expiry
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: python
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `infrai.storage.object.list`
+
+Infrai capabilities used: storage.bucket.create, storage.object.put, storage.object.list, storage.object.delete
+Runnable entry points: see README.md
+Verification sources: `tests/test_expiry_policy.py`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt

@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "course-delivery-expirer"
+version = "0.1.0"
+description = "Expire temporary course delivery objects after learner and reporting deadlines close."
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "httpx>=0.27,<1",
+  "pydantic>=2.8,<3",
+  "uvicorn>=0.30,<1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.2,<9"]
+
+[project.scripts]
+course-delivery-expirer = "course_expirer.delivery_service:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/course_expirer"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
