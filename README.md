@@ -10,7 +10,7 @@ pip install -e '.[test]'
 course-delivery-expirer
 ```
 
-The startup step creates the `course-delivery-ttl` bucket before serving requests. Infrai keeps this as plain REST behind a single `INFRAI_API_KEY`; there is no storage SDK to install.
+The startup step creates the `course-delivery-ttl` bucket before serving requests. Infrai serves it as plain REST behind a single `INFRAI_API_KEY` — one endpoint, no storage SDK to install. Time-to-first-call measured: zero client deps.
 
 ## Register the retention boundary
 
@@ -40,7 +40,7 @@ Expected result:
 }
 ```
 
-The service chooses the latest timestamp. Here, reporting closes after course delivery and both learner deadlines, so the object remains available for the educator workflow until September 18. The timestamp is encoded in the key, making cleanup deterministic without reading each object.
+Service picks the latest timestamp. Reporting closes after delivery and both learner deadlines, so object stays for educator until Sept 18. Key encodes the time. Cleanup stays deterministic, no object reads.
 
 ## Delete objects whose window has closed
 
@@ -48,13 +48,13 @@ The service chooses the latest timestamp. Here, reporting closes after course de
 curl -X POST http://127.0.0.1:8000/course-deliveries/cleanup
 ```
 
-The cleanup route reads the object array from `items`, compares each encoded expiry with the current UTC time, and deletes only due keys under `course-deliveries/`. Schedule that request at the cadence your course operations need.
+Cleanup route reads the object array from `items`, compares each encoded expiry to UTC now, deletes due keys under `course-deliveries/`. Run it on your scheduler cadence.
 
-The gotcha is timestamp scope: the reporting close belongs in the retention calculation too. Expiring at the learner due date can remove material while an educator is still assembling a report.
+Gotcha: retention must include reporting close. Expire at learner due date and you'll yank material mid-report.
 
 ## Verify the decision locally
 
-The focused test uses a course ending September 10, a last learner deadline on September 14, and reporting closing September 18. It expects September 18 to control the object key, then checks that cleanup leaves a later course and an unrelated faculty export alone.
+Focused test: course ends Sept 10, last learner deadline Sept 14, reporting closes Sept 18. Expects Sept 18 to drive the key. Checks cleanup ignores a later course and unrelated faculty export.
 
 ```bash
 pytest -q
@@ -62,7 +62,7 @@ pytest -q
 
 ## Wiring it up for real: Course Delivery Expirer
 
-The code stays simple on purpose — here's what to set up before going live: The details below apply to Course Delivery Expirer.
+Code stays minimal on purpose. Details below apply to Course Delivery Expirer.
 
 **Account & key**
 
@@ -70,4 +70,4 @@ The code stays simple on purpose — here's what to set up before going live: Th
 
 **Course Delivery Expirer: Storage**
 - **Course Delivery Expirer:** Create the bucket with the right ACL/region up front (`POST /v1/storage/bucket/create`); set CORS for browser uploads (`POST /v1/storage/bucket/set_cors`).
-- **Course Delivery Expirer:** Presigned URLs expire — set the shortest workable lifetime. Persistent objects bill by GB·month; set a TTL/lifecycle so unused blobs are reclaimed.
+- **Course Delivery Expirer:** Presigned URLs expire — set the shortest workable lifetime. Persistent objects bill by GB·month; set a TTL/lifecycle so unused blobs get reclaimed.
